@@ -53,8 +53,6 @@ for GREENSHIELDVULN in $greenshieldlist
 do
 echo -e "${grn}GREENSHIELDVULN: $GREENSHIELDVULN${end}"
 ALERT=$(jq --arg GREENSHIELDVULN $GREENSHIELDVULN '.alerts[] | select(.vulnerability.name==$GREENSHIELDVULN)|.alertUuid' alerts.json)
-echo "Alert: "$ALERT
-
 IGNORES+=$ALERT,
 
 done
