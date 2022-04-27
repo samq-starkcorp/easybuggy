@@ -54,8 +54,8 @@ greenshieldlist=$(cat greenshields.txt)
 for GREENSHIELDVULN in $greenshieldlist
 do
 echo -e "${grn}GREENSHIELDVULN: $GREENSHIELDVULN${end}"
-IGNORES+=$(jq --arg GREENSHIELDVULN $GREENSHIELDVULN '.alerts[] | select(.vulnerability.name==$GREENSHIELDVULN)|.alertUuid' alerts.json)
-IGNORES+=,
+ALERT=$(jq --arg GREENSHIELDVULN $GREENSHIELDVULN '.alerts[] | select(.vulnerability.name==$GREENSHIELDVULN)|.alertUuid' alerts.json)
+IGNORES+=$ALERT,
 
 done
 IGNORE_ALERTS=${IGNORES::-1}
