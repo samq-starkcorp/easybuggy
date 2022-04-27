@@ -53,9 +53,9 @@ for GREENSHIELDVULN in $greenshieldlist
 do
 echo -e "${grn}GREENSHIELDVULN: $GREENSHIELDVULN${end}"
 
-IGNORES=$(jq -r --arg GREENSHIELDVULN $GREENSHIELDVULN '.alerts[] | select(.vulnerability.name==$GREENSHIELDVULN)|.alertUuid' alerts.json)
-echo "${yel}Ignoring the following alertUuids $IGNORES${end}"
-
-curl --request POST $WS_URL'/api/v1.3' -H 'Content-Type: application/json'  -d '{ "requestType" : "ignoreAlerts", "userKey" : "'$WS_USERKEY'", "orgToken" : "'$WS_APIKEY'", "alertUuids" : ["'$IGNORES'"], "comments" : "green shield vulnerabilities are not reachable or exploitable and have been ignored"}'
+IGNORES+=$(jq --arg GREENSHIELDVULN $GREENSHIELDVULN '.alerts[] | select(.vulnerability.name==$GREENSHIELDVULN)|.alertUuid' alerts.json),
 
 done
+IGNOREALERTS=${IGNORES::-1}
+echo "${yel}Ignoring the following alertUuids $IGNOREALERTS${end}"
+curl --request POST $WS_URL'/api/v1.3' -H 'Content-Type: application/json'  -d '{ "requestType" : "ignoreAlerts", "userKey" : "'$WS_USERKEY'", "orgToken" : "'$WS_APIKEY'", "alertUuids" : ['$IGNOREALERTS'], "comments" : "green shield vulnerabilities are not reachable or exploitable and have been ignored"}'
