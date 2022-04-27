@@ -47,18 +47,27 @@ echo "getting projectToken for repository default branch" $REPOTOKEN
 curl --request POST $WS_URL'/api/v1.3' -H 'Content-Type: application/json' -d '{ "requestType" : "getProjectAlertsByType", "userKey" : "'$WS_USERKEY'", "alertType": "SECURITY_VULNERABILITY",  "projectToken": "'$REPOTOKEN'","format" : "json"}' >> alerts.json
 echo "saving alerts.json"
 ### Get Previously Ignored Alerts
-#curl --request POST $WS_URL'/api/v1.3' -H 'Content-Type: application/json' -d '{ "requestType" : "getIgnoredAlerts", "userKey" : "'$WS_USERKEY'", "alertType": "SECURITY_VULNERABILITY",  "projectToken": "'$REPOTOKEN'","format" : "json"}' >> alerts.json
-#echo "saving alerts.json"
+declare -a IGNORED_ALERTS
+IGNORED_ALERTS=($(curl --request POST $WS_URL'/api/v1.3' -H 'Content-Type: application/json' -d '{ "requestType" : "getProjectIgnoredAlerts", "userKey" : "'$WS_USERKEY'",  "projectToken": "'$REPOTOKEN'" }' | jq -r '.alerts[].vulnerability.name'))
+echo "previously ignoreAlerts:" ${IGNORED_ALERTS[*]}
 
 greenshieldlist=$(cat greenshields.txt)
 ### Get CVE by GREEN Shield
 for GREENSHIELDVULN in $greenshieldlist
 do
 echo -e "${grn}GREENSHIELDVULN: $GREENSHIELDVULN${end}"
-ALERT=$(jq --arg GREENSHIELDVULN $GREENSHIELDVULN '.alerts[] | select(.vulnerability.name==$GREENSHIELDVULN)|.alertUuid' alerts.json)
-IGNORES+=$ALERT,
 
+if [[ ! " ${IGNORED_ALERTS[*]} " =~ " ${GREENSHIELDVULN} " ]]; then
+    ALERT=$(jq --arg GREENSHIELDVULN $GREENSHIELDVULN '.alerts[] | select(.vulnerability.name==$GREENSHIELDVULN)|.alertUuid' alerts.json)
+    IGNORES+=$ALERT,
+fi
+if [ -z "$IGNORES" ]
+then
+      echo "$IGNORES All Alerts were previously ignored"
+else
+      IGNORE_ALERTS=${IGNORES::-1}
+      echo "${yel}Ignoring the following alertUuids $IGNORE_ALERTS${end}"
+      curl --request POST $WS_URL'/api/v1.3' -H 'Content-Type: application/json'  -d '{ "requestType" : "ignoreAlerts", "userKey" : "'$WS_USERKEY'", "orgToken" : "'$WS_APIKEY'", "alertUuids" : ['$IGNORE_ALERTS'], "comments" : "green shield vulnerabilities are not reachable or exploitable and have been ignored"}'
+fi
 done
-IGNORE_ALERTS=${IGNORES::-1}
-echo "${yel}Ignoring the following alertUuids $IGNORE_ALERTS${end}"
-curl --request POST $WS_URL'/api/v1.3' -H 'Content-Type: application/json'  -d '{ "requestType" : "ignoreAlerts", "userKey" : "'$WS_USERKEY'", "orgToken" : "'$WS_APIKEY'", "alertUuids" : ['$IGNORE_ALERTS'], "comments" : "green shield vulnerabilities are not reachable or exploitable and have been ignored"}'
+
