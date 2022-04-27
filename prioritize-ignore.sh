@@ -47,6 +47,8 @@ echo "getting projectToken for repository default branch" $REPOTOKEN
 curl --request POST $WS_URL'/api/v1.3' -H 'Content-Type: application/json' -d '{ "requestType" : "getProjectAlertsByType", "userKey" : "'$WS_USERKEY'", "alertType": "SECURITY_VULNERABILITY",  "projectToken": "'$REPOTOKEN'","format" : "json"}' >> alerts.json
 echo "saving alerts.json"
 
+cat alerts.json
+echo -e "\n"
 greenshieldlist=$(cat greenshields.txt)
 ### Get CVE by GREEN Shield
 for GREENSHIELDVULN in $greenshieldlist
