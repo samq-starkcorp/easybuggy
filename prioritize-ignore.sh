@@ -25,7 +25,7 @@ echo "export WS_URL="$WS_URL
 
 ### getProjectSecurityAlertsbyVulnerabilityReport - finds Green Shields
 curl --request POST $WS_URL'/api/v1.3' -H 'Content-Type: application/json'  -d '{ "requestType" : "getProjectSecurityAlertsByVulnerabilityReport", "userKey" : "'$WS_USERKEY'", "projectToken": "'$WS_PROJECTTOKEN'", "format" : "json"}' | jq -r '.alerts[] | select(.euaShield=="GREEN") | .vulnerabilityId' >> greenshields.txt
-echo 'saving greenshields.txt'
+echo "saving greenshields.txt"
 
 # Get productToken from WS_PRODUCTNAME
 WS_PRODUCTTOKEN=$(curl --request POST $WS_URL'/api/v1.3' -H 'Content-Type: application/json'  -d '{ "requestType" : "getAllProducts",   "userKey" : "'$WS_USERKEY'",  "orgToken": "'$WS_APIKEY'"}' | jq -r --arg WS_PRODUCTNAME $WS_PRODUCTNAME '.products[] | select(.productName==$WS_PRODUCTNAME) | .productToken')
@@ -39,7 +39,7 @@ echo "getting projectToken for repository default branch" $REPOTOKEN
 curl --request POST $WS_URL'/api/v1.3' -H 'Content-Type: application/json' -d '{ "requestType" : "getProjectAlertsByType", "userKey" : "'$WS_USERKEY'", "alertType": "SECURITY_VULNERABILITY",  "projectToken": "'$REPOTOKEN'","format" : "json"}' >> alerts.json
 echo "saving alerts.json"
 
-greenshieldlist=`cat greenshields.txt`
+greenshieldlist=$(cat greenshields.txt)
 ### Get CVE by GREEN Shield
 for GREENSHIELDVULN in $greenshieldlist
 do
