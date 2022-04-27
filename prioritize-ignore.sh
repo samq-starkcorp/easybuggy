@@ -61,6 +61,8 @@ if [[ ! " ${IGNORED_ALERTS[*]} " =~ " ${GREENSHIELDVULN} " ]]; then
     ALERT=$(jq --arg GREENSHIELDVULN $GREENSHIELDVULN '.alerts[] | select(.vulnerability.name==$GREENSHIELDVULN)|.alertUuid' alerts.json)
     IGNORES+=$ALERT,
 fi
+done
+
 if [ -z "$IGNORES" ]
 then
       echo "$IGNORES All Alerts were previously ignored"
@@ -69,5 +71,5 @@ else
       echo "${yel}Ignoring the following alertUuids $IGNORE_ALERTS${end}"
       curl --request POST $WS_URL'/api/v1.3' -H 'Content-Type: application/json'  -d '{ "requestType" : "ignoreAlerts", "userKey" : "'$WS_USERKEY'", "orgToken" : "'$WS_APIKEY'", "alertUuids" : ['$IGNORE_ALERTS'], "comments" : "green shield vulnerabilities are not reachable or exploitable and have been ignored"}'
 fi
-done
+
 
